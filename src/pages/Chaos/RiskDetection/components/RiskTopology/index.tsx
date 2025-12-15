@@ -1053,15 +1053,25 @@ const RiskTopology: FC = () => {
     setIsResizingDetail(true);
   }, []);
 
+  const siderRef = useRef<HTMLDivElement>(null);
+  const [isTransition, setIsTransition] = useState(true);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      setIsTransition(false)
       if (isResizingSidebar) {
+        const sider = siderRef.current;
+        if (!sider) return;
+
+        const rect = sider.getBoundingClientRect();
+        let newWidth = e.clientX - rect.left;
+        
         // 修复：使用 e.clientX 作为新宽度（支持双向拖拽）
-        const newWidth = Math.max(200, Math.min(600, e.clientX));
+        newWidth = Math.max(200, Math.min(600, newWidth));
         setSidebarWidth(newWidth);
       }
       if (isResizingDetail) {
-        const newWidth = Math.max(300, Math.min(800, window.innerWidth - e.clientX));
+        const newWidth = Math.max(300, Math.min(800, window.innerWidth - e.clientX)) - 38;
         setDetailPanelWidth(newWidth);
       }
     };
@@ -1075,6 +1085,7 @@ const RiskTopology: FC = () => {
         setIsResizingDetail(false);
         localStorage.setItem('riskTopology_detailPanelWidth', detailPanelWidth.toString());
       }
+      setIsTransition(true)
     };
 
     if (isResizingSidebar || isResizingDetail) {
@@ -1152,7 +1163,7 @@ const RiskTopology: FC = () => {
     }
 
     return (
-      <div className={styles.sidebar} style={{ width: sidebarWidth }}>
+      <div ref={siderRef} className={styles.sidebar} style={{ width: sidebarWidth, transition: isTransition ? '' : 'none' }}>
         {/* 头部标题 */}
         <div className={styles.sidebarHeader}>
           <div className={styles.logoTitle}>
@@ -1444,7 +1455,7 @@ const RiskTopology: FC = () => {
     const isService = selectedNode.type === 'SERVICE';
 
     return (
-      <div className={styles.detailPanel} style={{ width: detailPanelWidth }}>
+      <div className={styles.detailPanel} style={{ width: detailPanelWidth, transition: isTransition ? '' : 'none' }}>
         {/* 拖拽手柄 */}
         <div
           className={styles.resizeHandle}
